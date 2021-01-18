@@ -41,7 +41,7 @@ export default function HomePage(props) {
           <Card
             title="Phylogenetic Tree"
             image="/static/images/phylogeny.png"
-            description="Turn Sequencing data into phylogenic tree"
+            description="Turn Sequencing data into phylogenetic tree"
           />
         </NavLink>
         <NavLink to="/alignment" className={classes.cards}>

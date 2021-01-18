@@ -175,6 +175,7 @@ export default function SequenceEntryPage(props) {
         if (!response.ok) {
           // get error message from body or default to response status
           const error = (data && data.message) || response.status;
+          alert(error);
           return Promise.reject(error);
         }
         setData(data);

@@ -6,6 +6,7 @@ import { JsonToTable } from "react-json-to-table";
 import AssessmentIcon from "@material-ui/icons/Assessment";
 import Button from "@material-ui/core/Button";
 import { DataGrid } from "@material-ui/data-grid";
+import SearchIcon from '@material-ui/icons/Search';
 import {
   BrowserRouter as Router,
   Switch,
@@ -27,11 +28,10 @@ const useStyles = makeStyles({
     margin: "1%",
   },
 
-  table:{
-    overflow:"auto",
-    margin: "5%"
-  }
-
+  table: {
+    overflow: "auto",
+    margin: "5%",
+  },
 });
 
 const columns = [
@@ -51,6 +51,9 @@ export default function AnalysisPage(props) {
   const classes = useStyles();
   const [data, setData] = useState([]);
   const [ids, setIds] = useState([]);
+  const [blastId, setBlastId] = useState([]);
+  const [blast, setBlast] = useState([]);
+  const [blastDisable, setBlastDisable] = useState(false);
   const [analysis, setAnalysis] = useState([]);
 
   useEffect(() => {
@@ -62,6 +65,7 @@ export default function AnalysisPage(props) {
         if (!response.ok) {
           // get error message from body or default to response status
           const error = (data && data.message) || response.status;
+          alert(error)
           return Promise.reject(error);
         }
         setData(data);
@@ -72,7 +76,6 @@ export default function AnalysisPage(props) {
   }, []);
 
   const handleAnalysis = () => {
-    console.log(ids);
     const requestOptions = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -81,13 +84,40 @@ export default function AnalysisPage(props) {
     fetch("api/analyzeSequences", requestOptions)
       .then(async (response) => {
         const data = await response.json();
-        setAnalysis(data)
         // check for error response
         if (!response.ok) {
           // get error message from body or default to response status
           const error = data.message;
+          alert(error)
           return Promise.reject(error);
         }
+        setAnalysis(data);
+
+      })
+      .catch((error) => {
+        console.error("There was an error!", error);
+      });
+  };
+
+  const handleBlast = (sequence_id) => {
+    const requestOptions = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(sequence_id),
+    };
+    fetch("api/blastSequences", requestOptions)
+      .then(async (response) => {
+        const data = await response.json();
+
+        // check for error response
+        if (!response.ok) {
+          // get error message from body or default to response status
+          const error = data.message;
+          alert(error)
+          return Promise.reject(error);
+        }
+        setBlast(data);
+        setBlastDisable(false);
       })
       .catch((error) => {
         console.error("There was an error!", error);
@@ -104,7 +134,7 @@ export default function AnalysisPage(props) {
             columns={columns}
             checkboxSelection
             onSelectionChange={(newSelection) => {
-              setIds(newSelection.rowIds.map((item)=>parseInt(item)));
+              setIds(newSelection.rowIds.map((item) => parseInt(item)));
             }}
           />
         </div>
@@ -116,9 +146,32 @@ export default function AnalysisPage(props) {
         >
           Perform Analysis
         </Button>
-        {analysis.map((item)=> (<div className = {classes.table} ><JsonToTable json={item}  /></div>))}
+        {analysis.map((item,index) => (
+          <div className={classes.table}>
+            <JsonToTable json={item} />
+            {ids[index] == blastId? 
+            (
+              blast.map((item)=>(<JsonToTable json={item} />))
+            ) : (<div/>)}
+            <Button
+              variant="contained"
+              color="secondary"
+              disabled={blastDisable}
+              startIcon={<SearchIcon />}
+              onClick={()=>{
+                if(ids[index] != blastId){
+                  setBlast([])
+                }
+                setBlastId([ids[index]]);
+                setBlastDisable(true);
+                handleBlast([ids[index]]);
+              }}
+            >
+              BLAST IT!
+            </Button>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
-
