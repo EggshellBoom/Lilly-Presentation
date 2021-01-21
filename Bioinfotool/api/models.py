@@ -22,7 +22,7 @@ class Sequence(models.Model):
         ('DNA', 'DNA'),
         ('RNA', 'RNA')
     ]
-    seq_type = models.CharField(max_length=3, choices=SEQ_TYPES, default='D')
+    seq_type = models.CharField(max_length=3, choices=SEQ_TYPES, default='DNA')
     sequence = models.CharField(default="", max_length=2000)
     created_at = models.DateField(auto_now=True)
 

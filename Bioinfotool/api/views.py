@@ -19,6 +19,8 @@ from Bio import SeqIO
 from datetime import datetime
 from os import path
 from Bio import AlignIO
+from Bio.Phylo.TreeConstruction import DistanceCalculator,DistanceTreeConstructor
+from Bio import Phylo
 # Create your views here.
 
 
@@ -53,6 +55,9 @@ class CreateSequenceView(APIView):
 
             session = self.request.session.session_key
             label = serializer.data.get('label')
+            if not Sequence.objects.filter(label=label).count() == 0:
+                return Response({'message': 'The input data is invalid: repeated label. Please Resubmit.'}, status=status.HTTP_400_BAD_REQUEST)
+
             sequence = Sequence(session=session, label=label,
                                 seq_type=seq_type, sequence=seq)
             sequence.save()
@@ -251,12 +256,52 @@ class AlignSequenceView(APIView):
                 )
                 my_records.append(seqR)
             filename = datetime.now().strftime("%H:%M:%S")
-            SeqIO.write(my_records, f"alignment/{filename}_in.fasta", "fasta")
+            SeqIO.write(my_records, f"bioFile/alignment/{filename}_in.fasta", "fasta")
             os.system(
-                f"./muscle -in alignment/{filename}_in.fasta -out alignment/{filename}_out.fasta")
-            if path.exists(f"alignment/{filename}_out.fasta"):
+                f"./muscle -in bioFile/alignment/{filename}_in.fasta -out bioFile/alignment/{filename}_out.fasta")
+            if path.exists(f"bioFile/alignment/{filename}_out.fasta"):
                 alignment = AlignIO.read(
-                    f"alignment/{filename}_out.fasta", "fasta")
+                    f"bioFile/alignment/{filename}_out.fasta", "fasta")
                 for seq in alignment:
                     response.append(format_sequence(seq))
             return Response(response, status=status.HTTP_200_OK)
+
+
+class TreeSequenceView(APIView):
+
+    def post(self, request, format=None):
+        if not self.request.session.exists(self.request.session.session_key):
+            self.request.session.create()
+        ids = request.data
+        if not all(isinstance(x, int) for x in ids):
+            return Response({'message': 'The input lists contains illegal ids'}, status=status.HTTP_400_BAD_REQUEST)
+        queryset = Sequence.objects.filter(pk__in=ids)
+        my_records = []
+        response = ""
+        for seq in queryset:
+            new_id=seq.label.replace(" ", "_")
+            seqR = SeqRecord(
+                Seq(seq.sequence),
+                id=new_id
+            )
+            my_records.append(seqR)
+        filename = datetime.now().strftime("%H:%M:%S")
+        SeqIO.write(my_records, f"bioFile/alignment/{filename}_in.fasta", "fasta")
+        os.system(
+            f"./muscle -in bioFile/alignment/{filename}_in.fasta -out bioFile/alignment/{filename}_out.fasta")
+        while not path.exists(f"bioFile/alignment/{filename}_out.fasta"):
+            pass
+        alignment = AlignIO.read(
+            f"bioFile/alignment/{filename}_out.fasta", "fasta")
+        calculator = DistanceCalculator('identity')
+        constructor = DistanceTreeConstructor(calculator)
+        tree = constructor.build_tree(alignment)
+        Phylo.write(tree, f"bioFile/tree/{filename}.tree", "newick")
+        while not path.exists(f"bioFile/tree/{filename}.tree"):
+            pass
+        with open(f"bioFile/tree/{filename}.tree") as myfile:
+            for line in myfile.readlines():
+                response += line
+        return Response(response, status=status.HTTP_200_OK)
+
+

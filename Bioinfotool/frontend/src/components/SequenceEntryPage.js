@@ -62,9 +62,9 @@ const SubmitSequenceDialog = ({ open, handleClose, message }) => {
         <DialogContent>
           <DialogContentText>
             Plese input a sequence you'd like to analyze. Please make sure the
-            inputs are NUCLEOTIDE BASES.
+            inputs are NUCLEOTIDE BASES and the labels are unique.
           </DialogContentText>
-          <DialogContentText id="alert-dialog-description" color="#DC143C">
+          <DialogContentText id="alert-dialog-description" color="red">
             {message}
           </DialogContentText>
           <InputLabel>Sequence Type</InputLabel>
@@ -210,6 +210,7 @@ export default function SequenceEntryPage(props) {
         if (!response.ok) {
           // get error message from body or default to response status
           const error = data.message;
+          alert(error);
           setError(error);
           return Promise.reject(error);
         }
@@ -244,9 +245,11 @@ export default function SequenceEntryPage(props) {
         if (!response.ok) {
           // get error message from body or default to response status
           const error = data.message;
+          alert(error);
           setError(error);
           return Promise.reject(error);
         }
+
         setError("");
         setOpenE(false);
         setRefresh(refresh+1);

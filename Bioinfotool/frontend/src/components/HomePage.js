@@ -16,6 +16,7 @@ const useStyles = makeStyles({
     margin: "10%",
     display: "flex",
     justifyContent: "center",
+    flexWrap:"wrap"
   },
 
   cards: {
@@ -58,6 +59,13 @@ export default function HomePage(props) {
             description="Review dataset in detail"
           />
         </NavLink>
+        <a href="http://eggshellboom.github.io/Sequence-Alignment-Tutorial/"  className={classes.cards}>
+          <Card
+            title="Sequence Alignment Tutorial"
+            image="/static/images/tutorial.png"
+            description="Step by step tutorial for pairewise sequence alignment"
+          />
+        </a>
       </div>
     </div>
   );
