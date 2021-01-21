@@ -8,5 +8,6 @@ urlpatterns = [
     path('alignment',index),
     path('analysis',index),
     path('phylogeny',index),
-    path('entry',index)
+    path('entry',index),
+    path('cancer',index)
 ]

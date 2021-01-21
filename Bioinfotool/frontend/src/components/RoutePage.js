@@ -4,6 +4,7 @@ import AnalysisPage from "./AnalysisPage";
 import PhylogenyPage from "./PhylogenyPage";
 import HomePage from "./HomePage";
 import SequenceEntryPage from "./SequenceEntryPage";
+import CancerPredictionPage from "./CancerPredictionPage";
 import Nav from "./Nav";
 import {
   BrowserRouter as Router,
@@ -27,6 +28,7 @@ export default class RoutePage extends Component {
           <Route path="/analysis" component={AnalysisPage} />
           <Route path="/phylogeny" component={PhylogenyPage} />
           <Route path="/entry" component={SequenceEntryPage} />
+          <Route path="/cancer" component={CancerPredictionPage} />
         </Switch>
       </Router>
     );

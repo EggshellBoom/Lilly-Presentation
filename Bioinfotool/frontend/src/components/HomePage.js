@@ -59,6 +59,13 @@ export default function HomePage(props) {
             description="Review dataset in detail"
           />
         </NavLink>
+        <NavLink to="/cancer" className={classes.cards}>
+          <Card
+            title="Cancer Prediction"
+            image="/static/images/prediction.jpg"
+            description="Predict breast/skin cancer given dataset or image"
+          />
+        </NavLink>
         <a href="http://eggshellboom.github.io/Sequence-Alignment-Tutorial/"  className={classes.cards}>
           <Card
             title="Sequence Alignment Tutorial"

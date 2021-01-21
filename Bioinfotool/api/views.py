@@ -21,6 +21,10 @@ from os import path
 from Bio import AlignIO
 from Bio.Phylo.TreeConstruction import DistanceCalculator,DistanceTreeConstructor
 from Bio import Phylo
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+import pickle
 # Create your views here.
 
 
@@ -305,3 +309,20 @@ class TreeSequenceView(APIView):
         return Response(response, status=status.HTTP_200_OK)
 
 
+class BreastCancerView(APIView):
+    def post(self, request, format=None):
+
+        if not self.request.session.exists(self.request.session.session_key):
+            self.request.session.create()
+        cancer_data = request.data
+        filename = "api/ML/Pickle_breast_Model.pkl"
+        loaded_model = pickle.load(open(filename, 'rb'))
+        sc = StandardScaler()
+        cancer_data = sc.fit_transform(cancer_data)
+        try:
+            response = loaded_model.predict(cancer_data).tolist()
+        except Exception as e:
+            print(e.__str__)
+            return Response({'message': e.__str__}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(response, status=status.HTTP_200_OK)

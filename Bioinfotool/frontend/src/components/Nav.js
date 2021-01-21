@@ -68,6 +68,12 @@ export default function ButtonAppBar(props) {
               <MenuItem onClick={handleClose}>
                 <NavLink to="/analysis">Data Analysis</NavLink>
               </MenuItem>
+              <MenuItem onClick={handleClose}>
+                <NavLink to="/cancer">Cancer Prediction</NavLink>
+              </MenuItem>
+              <MenuItem onClick={handleClose}>
+                <a href="http://eggshellboom.github.io/Sequence-Alignment-Tutorial/">Sequence Alignment Tutorial</a>
+              </MenuItem>
             </Menu>
           </IconButton>
 
