@@ -4,6 +4,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import TextareaAutosize from "@material-ui/core/TextareaAutosize";
 import EditIcon from "@material-ui/icons/Edit";
 import Button from "@material-ui/core/Button";
+import { FormHelperText } from "@material-ui/core";
 
 const useStyles = makeStyles({
   home: {
@@ -21,6 +22,37 @@ const useStyles = makeStyles({
 export default function CancerPredictionPage(props) {
   const classes = useStyles();
   const [prediction, setPrediction] = useState([]);
+  
+  const handleImageSubmit = () =>{
+    let text = document.getElementById("skin_title").value;
+    let image = document.getElementById("skin_title").value;
+    let formdata = new FormData();
+    formdata.append('image', image, image.name);
+    formdata.append('title', text);
+    const requestOptions = {
+      method: "POST",
+      headers: { "Content-Type": "multipart/form-data" },
+      body: formdata
+    };
+
+    fetch("api/skinCancer", requestOptions)
+    .then(async (response) => {
+      const data = await response.json();
+
+      // check for error response
+      if (!response.ok) {
+        // get error message from body or default to response status
+        const error = data.message;
+        alert(error);
+        return Promise.reject(error);
+      }
+      console.log(data);
+    })
+    .catch((error) => {
+      console.error("There was an error!", error);
+    });
+  }
+
 
   const handleSubmit = () => {
     var data = document.getElementById("breast_input").value;
@@ -92,6 +124,27 @@ export default function CancerPredictionPage(props) {
             <p>--------Malignant--------</p>
           )
         )}
+        <div>
+          <form onSubmit={this.handleImageSubmit}>
+            <p>
+              <input
+                type="text"
+                placeholder="Title"
+                id="skin_title"
+                required
+              />
+            </p>
+            <p>
+              <input
+                type="file"
+                id="skin_image"
+                accept="image/png, image/jpeg"
+                required
+              />
+            </p>
+            <input type="submit" />
+          </form>
+        </div>
       </div>
     </div>
   );

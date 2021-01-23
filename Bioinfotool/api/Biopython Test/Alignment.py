@@ -9,7 +9,7 @@ from Bio import Phylo
 alignments = pairwise2.align.globalmx("ACCGTTTTTTTTTTTTTTTTTTTTTTTTTTT", "ACG",2,-1)
 print(alignments[0].seqA)
 print(alignments)
-os.system("./muscle -in opuntia.fasta -out c.fasta")
+os.system(".\muscle.exe -in opuntia.fasta -out c.fasta")
 while not path.exists("c.fasta"):
     pass
 alignment = AlignIO.read("c.fasta","fasta")

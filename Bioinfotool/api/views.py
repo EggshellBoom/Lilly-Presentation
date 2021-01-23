@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from rest_framework import generics, status
 from rest_framework.views import APIView
-from .serializer import SequenceSerializer, CreateSequenceSerializer, UpdateSequenceSerializer
+from .serializer import SequenceSerializer, CreateSequenceSerializer, UpdateSequenceSerializer,ImageSerializer
 from .models import Sequence
 from .dna_structure import NUCLEOTIDE_BASE, DNA_Codons
 from rest_framework.response import Response
@@ -19,7 +19,7 @@ from Bio import SeqIO
 from datetime import datetime
 from os import path
 from Bio import AlignIO
-from Bio.Phylo.TreeConstruction import DistanceCalculator,DistanceTreeConstructor
+from Bio.Phylo.TreeConstruction import DistanceCalculator, DistanceTreeConstructor
 from Bio import Phylo
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
@@ -65,7 +65,7 @@ class CreateSequenceView(APIView):
 
             session = self.request.session.session_key
             label = serializer.data.get('label')
-            if not Sequence.objects.filter(label=label).count() == 0:
+            if not Sequence.objects.filter(label=label).filter(session=session).count() == 0:
                 return Response({'message': 'The input data is invalid: repeated label. Please Resubmit.'}, status=status.HTTP_400_BAD_REQUEST)
 
             sequence = Sequence(session=session, label=label,
@@ -165,27 +165,6 @@ class BlastSequenceView(APIView):
         if not all(isinstance(x, int) for x in ids):
             return Response({'message': 'The input lists contains illegal ids'}, status=status.HTTP_400_BAD_REQUEST)
         queryset = Sequence.objects.filter(pk__in=ids)
-        # response = [
-        #     {
-        #         "Title": "Alignment",
-        #         "Sequence": "gi|1676320234|emb|LR594564.1| Streptopelia turtur genome assembly, chromosome: 13",
-        #         "Length": 20810306,
-        #         "E Value": 6.10659,
-        #         "query": "AAAAGGAGAGAGAGTTTATA",
-        #         "match": "||||||||||||||||||||",
-        #         "sbjct": "AAAAGGAGAGAGAGTTTATA"
-        #     },
-        #     {
-        #         "Title": "Alignment",
-        #         "Sequence": "gi|1395234831|gb|CP026251.1| Scophthalmus maximus chromosome 9",
-        #         "Length": 25242470,
-        #         "E Value": 6.10659,
-        #         "query": "AAAAGGAGAGAGAGTTTATA",
-        #         "match": "||||||||||||||||||||",
-        #         "sbjct": "AAAAGGAGAGAGAGTTTATA"
-        #     }
-        # ]
-        # return Response(response, status=status.HTTP_200_OK)
 
         response = []
 
@@ -257,23 +236,25 @@ class AlignSequenceView(APIView):
             return Response(response, status=status.HTTP_200_OK)
         if algo == "M":
             my_records = []
-            
+
             for seq in queryset:
-                new_id=seq.label.replace(" ", "_")
+                new_id = seq.label.replace(" ", "_")
                 seqR = SeqRecord(
                     Seq(seq.sequence),
                     id=new_id
                 )
                 my_records.append(seqR)
-            filename = datetime.now().strftime("%H:%M:%S")
-            SeqIO.write(my_records, f"bioFile/alignment/{filename}_in.fasta", "fasta")
+            filename = datetime.now().strftime("%H%M%S")
+            SeqIO.write(
+                my_records, f"bioFile/alignment/{filename}_in.fasta", "fasta")
             os.system(
-                f"./muscle -in bioFile/alignment/{filename}_in.fasta -out bioFile/alignment/{filename}_out.fasta")
-            if path.exists(f"bioFile/alignment/{filename}_out.fasta"):
-                alignment = AlignIO.read(
-                    f"bioFile/alignment/{filename}_out.fasta", "fasta")
-                for seq in alignment:
-                    response.append(format_sequence(seq))
+                f".\muscle.exe -in bioFile/alignment/{filename}_in.fasta -out bioFile/alignment/{filename}_out.fasta")
+            while not path.exists(f"bioFile/alignment/{filename}_out.fasta"):
+                pass
+            alignment = AlignIO.read(
+                f"bioFile/alignment/{filename}_out.fasta", "fasta")
+            for seq in alignment:
+                response.append(format_sequence(seq))
             return Response(response, status=status.HTTP_200_OK)
 
 
@@ -289,16 +270,17 @@ class TreeSequenceView(APIView):
         my_records = []
         response = ""
         for seq in queryset:
-            new_id=seq.label.replace(" ", "_")
+            new_id = seq.label.replace(" ", "_")
             seqR = SeqRecord(
                 Seq(seq.sequence),
                 id=new_id
             )
             my_records.append(seqR)
-        filename = datetime.now().strftime("%H:%M:%S")
-        SeqIO.write(my_records, f"bioFile/alignment/{filename}_in.fasta", "fasta")
+        filename = datetime.now().strftime("%H%M%S")
+        SeqIO.write(
+            my_records, f"bioFile/alignment/{filename}_in.fasta", "fasta")
         os.system(
-            f"./muscle -in bioFile/alignment/{filename}_in.fasta -out bioFile/alignment/{filename}_out.fasta")
+            f".\muscle.exe -in bioFile/alignment/{filename}_in.fasta -out bioFile/alignment/{filename}_out.fasta")
         while not path.exists(f"bioFile/alignment/{filename}_out.fasta"):
             pass
         alignment = AlignIO.read(
@@ -333,11 +315,15 @@ class BreastCancerView(APIView):
 
         return Response(response, status=status.HTTP_200_OK)
 
+
 class SkinCancerView(APIView):
     def post(self, request, format=None):
         if not self.request.session.exists(self.request.session.session_key):
             self.request.session.create()
-        cancer_data = request.data
+        image_serializer = ImageSerializer(data=request.data)
+        if image_serializer.is_valid():
+            image_serializer.save()
+        return Response(posts_serializer.data, status=status.HTTP_201_CREATED)
         filename = "api/ML/Skin_Model"
         model = keras.models.load_model(filename)
         image_path = "api/ML/dataset/skin/test/benign/1006.jpg"
@@ -345,6 +331,6 @@ class SkinCancerView(APIView):
         img = image.img_to_array(new_img)
         img = np.expand_dims(img, axis=0)
         prediction = model.predict(img)
-        prediction = np.argmax(prediction,axis=1)
+        prediction = np.argmax(prediction, axis=1)
         print(prediction)
         return Response(prediction, status=status.HTTP_200_OK)

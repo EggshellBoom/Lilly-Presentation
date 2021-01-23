@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Sequence
+from .models import Sequence,Image
 
 
 class SequenceSerializer(serializers.ModelSerializer):
@@ -16,3 +16,8 @@ class UpdateSequenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sequence
         fields = ('seq_id','label','seq_type','sequence','created_at')
+
+class ImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Image
+        fields = '__all__'
