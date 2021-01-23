@@ -25,6 +25,12 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import pickle
+from keras.preprocessing import image
+import numpy as np
+import keras
+import tensorflow as tf
+from PIL import Image
+from keras.preprocessing import image
 # Create your views here.
 
 
@@ -326,3 +332,19 @@ class BreastCancerView(APIView):
             return Response({'message': e.__str__}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(response, status=status.HTTP_200_OK)
+
+class SkinCancerView(APIView):
+    def post(self, request, format=None):
+        if not self.request.session.exists(self.request.session.session_key):
+            self.request.session.create()
+        cancer_data = request.data
+        filename = "api/ML/Skin_Model"
+        model = keras.models.load_model(filename)
+        image_path = "api/ML/dataset/skin/test/benign/1006.jpg"
+        new_img = image.load_img(image_path, target_size=(64, 64))
+        img = image.img_to_array(new_img)
+        img = np.expand_dims(img, axis=0)
+        prediction = model.predict(img)
+        prediction = np.argmax(prediction,axis=1)
+        print(prediction)
+        return Response(prediction, status=status.HTTP_200_OK)
