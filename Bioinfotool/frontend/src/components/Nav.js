@@ -78,7 +78,7 @@ export default function ButtonAppBar(props) {
           </IconButton>
 
           <Typography variant="h6" className={classes.title}>
-            Bioinformatics Tools
+            Bioinformatics Toolset
           </Typography>
           <Typography variant="h6" className={classes.title}>
             {props.title}

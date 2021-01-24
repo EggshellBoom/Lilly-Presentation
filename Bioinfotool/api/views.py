@@ -303,6 +303,7 @@ class BreastCancerView(APIView):
         if not self.request.session.exists(self.request.session.session_key):
             self.request.session.create()
         cancer_data = request.data
+        print(cancer_data)
         filename = "api/ML/Pickle_breast_Model.pkl"
         loaded_model = pickle.load(open(filename, 'rb'))
         sc = StandardScaler()
@@ -320,13 +321,18 @@ class SkinCancerView(APIView):
     def post(self, request, format=None):
         if not self.request.session.exists(self.request.session.session_key):
             self.request.session.create()
+        
+        
         image_serializer = ImageSerializer(data=request.data)
         if image_serializer.is_valid():
             image_serializer.save()
-        return Response(posts_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            print('error', image_serializer.errors)
+            return Response(image_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         filename = "api/ML/Skin_Model"
         model = keras.models.load_model(filename)
-        image_path = "api/ML/dataset/skin/test/benign/1006.jpg"
+        print("data!!!!!!",image_serializer.data)
+        image_path = image_serializer.data['image'][1:]
         new_img = image.load_img(image_path, target_size=(64, 64))
         img = image.img_to_array(new_img)
         img = np.expand_dims(img, axis=0)

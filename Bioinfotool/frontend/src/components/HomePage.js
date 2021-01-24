@@ -62,7 +62,7 @@ export default function HomePage(props) {
         <NavLink to="/cancer" className={classes.cards}>
           <Card
             title="Cancer Prediction"
-            image="/static/images/prediction.jpg"
+            image="/static/images/cancer.png"
             description="Predict breast/skin cancer given dataset or image"
           />
         </NavLink>
